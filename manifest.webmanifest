@@ -1,0 +1,17 @@
+{
+  "name": "Calculatrice Commerciale",
+  "short_name": "Calculatrice",
+  "description": "Prix, remise et marge en temps réel pendant vos rendez-vous clients.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F6F7F9",
+  "theme_color": "#0B1533",
+  "icons": [
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

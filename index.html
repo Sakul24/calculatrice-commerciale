@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <title>Calculatrice Commerciale</title>
+    <meta name="description" content="Calculatrice commerciale pour rendez-vous B2B : prix TTC, remise, marge, taux de marque et coefficient en temps réel, avec un mode Vue Client.">
+    <meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0B1020" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Calculatrice Commerciale">
+    <meta property="og:description" content="Prix, remise et marge en temps réel pendant vos rendez-vous clients.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Calculatrice">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- Thème choisi appliqué avant l'affichage (évite un flash de couleur) -->
+    <script>
+        try {
+            var t = JSON.parse(localStorage.getItem('calculatrice-commerciale:theme'));
+            if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+        } catch (e) {}
+    </script>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS — charte « Bleu encre »
+           ========================================================= */
+        :root {
+            color-scheme: light;
+
+            --primary-950: #0B1533;
+            --primary-700: #1E3A8A;
+            --primary-600: #2547D0;
+            --primary-100: #E0E7FF;
+            --primary-50:  #F3F6FF;
+            --on-primary:  #FFFFFF;
+
+            --bg:             #F6F7F9;
+            --surface:        #FFFFFF;
+            --surface-muted:  #F1F3F6;
+            --border:         #E3E6EB;
+            --border-strong:  #CBD1DA;
+            --text:           #0F172A;
+            --text-2:         #475569;
+            --text-3:         #64748B;
+
+            --success: #047857; --success-bg: #ECFDF5; --success-bd: #A7F3D0; --success-solid: #10B981;
+            --warning: #B45309; --warning-bg: #FFFBEB; --warning-bd: #FDE68A; --warning-solid: #F59E0B;
+            --danger:  #B91C1C; --danger-bg:  #FEF2F2; --danger-bd:  #FECACA; --danger-solid:  #EF4444;
+            --client:  #6D28D9; --client-bg:  #F5F3FF; --client-bd:  #DDD6FE;
+
+            --hero-bg:    #0B1533;
+            --hero-text:  #FFFFFF;
+            --hero-muted: #AAB4CF;
+            --hero-chip:  #1B2650;
+            --hero-line:  rgba(255, 255, 255, .12);
+            --hero-glow:  rgba(91, 123, 255, .35);
+            --toast-bg:   #0B1533;
+            --brand-mark: #0B1533;
+            --seg-active: #FFFFFF;
+
+            --r-xs: 6px; --r-sm: 10px; --r-md: 16px; --r-full: 999px;
+            --ring: 0 0 0 3px rgba(37, 71, 208, .25);
+            --shadow-sm:   0 1px 2px rgba(16, 24, 40, .05);
+            --shadow-card: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+            --shadow-hero: 0 12px 28px -10px rgba(11, 21, 51, .45);
+            --shadow-pop:  0 12px 32px -8px rgba(16, 24, 40, .25);
+
+            /* Polices système : aucun appel à un service tiers (RGPD), disponibles hors connexion */
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+            --ease: cubic-bezier(.4, 0, .2, 1);
+        }
+
+        /* Thème sombre : automatique (réglage de l'appareil) sauf si « Clair » est forcé… */
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                color-scheme: dark;
+                --primary-600: #3D5AFE; --primary-700: #5470FF;
+                --primary-100: rgba(61, 90, 254, .18); --primary-50: rgba(61, 90, 254, .10);
+                --bg: #0B1020; --surface: #121A2E; --surface-muted: #0E1526;
+                --border: #1F2A44; --border-strong: #2C3A5A;
+                --text: #E6EAF2; --text-2: #A9B3C7; --text-3: #8A95AB;
+                --success: #34D399; --success-bg: rgba(16, 185, 129, .12); --success-bd: rgba(52, 211, 153, .30);
+                --warning: #FBBF24; --warning-bg: rgba(245, 158, 11, .12); --warning-bd: rgba(251, 191, 36, .30);
+                --danger:  #F87171; --danger-bg:  rgba(239, 68, 68, .12);  --danger-bd:  rgba(248, 113, 113, .30);
+                --client:  #A78BFA; --client-bg:  rgba(139, 92, 246, .14); --client-bd:  rgba(167, 139, 250, .35);
+                --hero-bg: #17224A; --hero-chip: #22306A; --toast-bg: #22306A;
+                --brand-mark: #3D5AFE; --seg-active: #2C3A5A;
+                --ring: 0 0 0 3px rgba(61, 90, 254, .45);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3); --shadow-card: 0 1px 2px rgba(0, 0, 0, .3);
+                --shadow-hero: 0 12px 28px -10px rgba(0, 0, 0, .6); --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, .6);
+            }
+        }
+        /* …ou forcé manuellement dans les réglages */
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --primary-600: #3D5AFE; --primary-700: #5470FF;
+            --primary-100: rgba(61, 90, 254, .18); --primary-50: rgba(61, 90, 254, .10);
+            --bg: #0B1020; --surface: #121A2E; --surface-muted: #0E1526;
+            --border: #1F2A44; --border-strong: #2C3A5A;
+            --text: #E6EAF2; --text-2: #A9B3C7; --text-3: #8A95AB;
+            --success: #34D399; --success-bg: rgba(16, 185, 129, .12); --success-bd: rgba(52, 211, 153, .30);
+            --warning: #FBBF24; --warning-bg: rgba(245, 158, 11, .12); --warning-bd: rgba(251, 191, 36, .30);
+            --danger:  #F87171; --danger-bg:  rgba(239, 68, 68, .12);  --danger-bd:  rgba(248, 113, 113, .30);
+            --client:  #A78BFA; --client-bg:  rgba(139, 92, 246, .14); --client-bd:  rgba(167, 139, 250, .35);
+            --hero-bg: #17224A; --hero-chip: #22306A; --toast-bg: #22306A;
+            --brand-mark: #3D5AFE; --seg-active: #2C3A5A;
+            --ring: 0 0 0 3px rgba(61, 90, 254, .45);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3); --shadow-card: 0 1px 2px rgba(0, 0, 0, .3);
+            --shadow-hero: 0 12px 28px -10px rgba(0, 0, 0, .6); --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, .6);
+        }
+
+        /* =========================================================
+           2. BASE
+           ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+            font-family: var(--font); font-size: 15px; line-height: 1.5;
+            background: var(--bg); color: var(--text);
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3, p { margin: 0; }
+        button { font: inherit; color: inherit; cursor: pointer; }
+        button:disabled { cursor: not-allowed; opacity: .5; }
+        svg { flex-shrink: 0; }
+        .num { font-variant-numeric: tabular-nums; }
+        :focus-visible { outline: none; box-shadow: var(--ring); }
+        ::selection { background: var(--primary-100); }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+        }
+        [hidden] { display: none !important; }
+
+        /* =========================================================
+           3. EN-TÊTE & VUE CLIENT
+           ========================================================= */
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: var(--surface);
+            background: color-mix(in srgb, var(--surface) 88%, transparent);
+            -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            max-width: 1120px; margin: 0 auto; padding: 12px 16px;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; }
+        .brand-mark { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: var(--brand-mark); color: #fff; display: grid; place-items: center; }
+        .brand-text { min-width: 0; overflow: hidden; }
+        .brand-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-sub { font-size: 13px; color: var(--text-3); }
+        @media (max-width: 459px) { .brand-text { display: none; } }
+        .actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        body.client-mode::before {
+            content: ""; position: fixed; inset: 0 0 auto 0; height: 3px; background: var(--client); z-index: 60;
+        }
+        body.client-mode [data-internal] { display: none !important; }
+        body.mode-switch .card, body.mode-switch .hero { animation: fadeUp .22s var(--ease); }
+        @keyframes fadeUp { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+        /* =========================================================
+           4. BOUTONS
+           ========================================================= */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 44px; padding: 0 16px; border-radius: var(--r-sm); border: 1px solid transparent;
+            font-size: 14px; font-weight: 600; line-height: 1; white-space: nowrap;
+            transition: background-color .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), transform .1s var(--ease);
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        .btn:active:not(:disabled) { transform: scale(.98); }
+        .btn-primary { background: var(--primary-600); color: var(--on-primary); }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-700); }
+        .btn-secondary { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+        .btn-secondary:hover:not(:disabled) { background: var(--surface-muted); }
+        .btn-ghost { background: transparent; color: var(--text-2); }
+        .btn-ghost:hover:not(:disabled) { background: var(--surface-muted); color: var(--text); }
+        .btn-icon { width: 44px; padding: 0; }
+        .btn.is-success { background: var(--success-solid); color: #fff; }
+        @media (max-width: 639px) { .hide-sm { display: none; } }
+
+        .btn-client { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        .btn-client[aria-pressed="true"] { background: var(--client-bg); border-color: var(--client-bd); color: var(--client); }
+        .btn-client .hold { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--client); }
+        .btn-client.holding .hold { width: 100%; transition: width .7s linear; }
+        .icon-eye-off { display: none; }
+        body.client-mode .icon-eye { display: none; }
+        body.client-mode .icon-eye-off { display: block; }
+
+        .icon-btn {
+            width: 40px; height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--text-3);
+            display: inline-grid; place-items: center; -webkit-tap-highlight-color: transparent;
+        }
+        .icon-btn:hover { background: var(--surface-muted); color: var(--text); }
+        .link-btn { border: 0; background: none; padding: 10px 0; color: var(--primary-600); font-size: 13px; font-weight: 600; }
+        .link-btn:hover { text-decoration: underline; }
+
+        /* =========================================================
+           5. MISE EN PAGE & CARTES
+           ========================================================= */
+        main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 24px 16px 32px; }
+        .grid { display: grid; gap: 20px; align-items: start; }
+        @media (min-width: 1024px) { .grid { grid-template-columns: 5fr 7fr; gap: 24px; } }
+        .stack { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-card); padding: 20px; min-width: 0; }
+        @media (min-width: 640px) { .card { padding: 24px; } }
+        .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .card-head-left { display: flex; align-items: center; gap: 8px; }
+        .overline { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+        .tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-xs); background: var(--surface-muted); color: var(--text-2); border: 1px solid var(--border); }
+
+        /* =========================================================
+           6. CHAMPS DE SAISIE
+           ========================================================= */
+        .field + .field { margin-top: 20px; }
+        .field-sep { border-top: 1px solid var(--border); padding-top: 20px; }
+        .field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; min-height: 24px; }
+        .label { font-size: 14px; font-weight: 600; color: var(--text); }
+        .label small { font-size: 13px; font-weight: 500; color: var(--text-3); }
+        .input-wrap { position: relative; }
+        .input {
+            width: 100%; height: 52px; padding: 0 44px 0 16px;
+            border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+            background: var(--surface-muted); color: var(--text);
+            font: inherit; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums;
+            transition: background-color .15s var(--ease), border-color .15s var(--ease), box-shadow .15s var(--ease);
+            -webkit-appearance: none; appearance: none;
+        }
+        .input--lg { height: 56px; font-size: 20px; }
+        .input--md { height: 48px; font-size: 17px; }
+        .input--text { height: 48px; font-size: 16px; font-weight: 500; padding: 0 16px; }
+        .input--center { text-align: center; padding: 0 12px; }
+        .input::placeholder { color: var(--text-3); font-weight: 500; opacity: .75; }
+        .input:focus { outline: none; background: var(--surface); border-color: var(--primary-600); box-shadow: var(--ring); }
+        .input[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-bg); }
+        .suffix { position: absolute; top: 0; bottom: 0; right: 16px; display: flex; align-items: center; pointer-events: none; color: var(--text-3); font-weight: 600; }
+        .field-hint { margin-top: 8px; font-size: 13px; color: var(--text-3); }
+        .field-hint.is-info { color: var(--primary-600); font-weight: 500; }
+        .field-hint.is-warn { color: var(--warning); font-weight: 500; }
+        .field-error { margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--danger); }
+        .field-error:empty { display: none; }
+        .delta { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--success); font-variant-numeric: tabular-nums; }
+        .delta:empty { display: none; }
+
+        .stepper { display: flex; gap: 8px; }
+        .stepper .input-wrap { flex: 1; }
+        .step-btn { width: 48px; min-height: 48px; padding: 0; font-size: 22px; font-weight: 500; }
+
+        .pills { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+        .pill {
+            min-height: 44px; padding: 0 4px; border-radius: var(--r-sm); border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-2);
+            font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+            transition: background-color .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), transform .1s var(--ease);
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        .pill:hover { border-color: var(--border-strong); color: var(--text); }
+        .pill:active { transform: scale(.97); }
+        .pill[aria-pressed="true"] { background: var(--primary-600); border-color: var(--primary-600); color: var(--on-primary); }
+
+        .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-sm); background: var(--surface-muted); border: 1px solid var(--border); }
+        .seg button {
+            min-height: 36px; min-width: 48px; padding: 0 10px; border: 0; border-radius: 7px;
+            background: transparent; color: var(--text-2); font-size: 13px; font-weight: 600;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        .seg button[aria-pressed="true"] { background: var(--seg-active); color: var(--text); box-shadow: var(--shadow-sm); }
+        .seg--full { display: flex; }
+        .seg--full button { flex: 1; min-height: 40px; }
+
+        /* =========================================================
+           7. CARTE HÉROS — PROPOSITION CLIENT
+           ========================================================= */
+        .hero { position: relative; overflow: hidden; background: var(--hero-bg); color: var(--hero-text); border-radius: var(--r-md); padding: 24px; box-shadow: var(--shadow-hero); }
+        .hero::after { content: ""; position: absolute; top: -45%; right: -15%; width: 340px; height: 340px; background: radial-gradient(closest-side, var(--hero-glow), transparent); pointer-events: none; }
+        .hero > * { position: relative; z-index: 1; }
+        .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .hero-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hero-muted); }
+        .hero-chip { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: var(--r-xs); background: var(--hero-chip); color: #DCE3F5; white-space: nowrap; }
+        .hero-amount { display: block; margin-top: 8px; font-size: clamp(36px, 9vw, 48px); font-weight: 700; letter-spacing: -.025em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .hero-sub { margin-top: 6px; font-size: 14px; color: var(--hero-muted); }
+        .hero-split { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hero-line); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .hero-k { font-size: 12px; font-weight: 500; color: var(--hero-muted); }
+        .hero-v { margin-top: 2px; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+        .hero-v small { font-size: 13px; font-weight: 500; }
+        .strike { display: block; font-size: 13px; font-weight: 500; color: var(--hero-muted); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+        .hero-unit { display: block; font-size: 13px; color: var(--hero-muted); font-variant-numeric: tabular-nums; }
+        .saving { color: #6EE7B7; }
+
+        /* =========================================================
+           8. RENTABILITÉ (usage interne)
+           ========================================================= */
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--r-full);
+            font-size: 12px; font-weight: 600; white-space: nowrap;
+            border: 1px solid var(--border); background: var(--surface-muted); color: var(--text-2);
+            transition: background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+        }
+        .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .chip--success { background: var(--success-bg); border-color: var(--success-bd); color: var(--success); }
+        .chip--warning { background: var(--warning-bg); border-color: var(--warning-bd); color: var(--warning); }
+        .chip--danger  { background: var(--danger-bg);  border-color: var(--danger-bd);  color: var(--danger); }
+
+        .kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+        .kpi { padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-muted); transition: background-color .2s var(--ease), border-color .2s var(--ease); }
+        .kpi-k { font-size: 13px; font-weight: 500; color: var(--text-2); }
+        .kpi-v { display: block; margin-top: 4px; font-size: 22px; font-weight: 700; letter-spacing: -.015em; font-variant-numeric: tabular-nums; transition: color .2s var(--ease); }
+        .kpi-c { display: block; font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+        .kpi-s { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3); white-space: nowrap; }
+        .kpi-s b { font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+        .kpi[data-tone="success"] { background: var(--success-bg); border-color: var(--success-bd); }
+        .kpi[data-tone="success"] .kpi-v { color: var(--success); }
+        .kpi[data-tone="warning"] { background: var(--warning-bg); border-color: var(--warning-bd); }
+        .kpi[data-tone="warning"] .kpi-v { color: var(--warning); }
+        .kpi[data-tone="danger"]  { background: var(--danger-bg);  border-color: var(--danger-bd); }
+        .kpi[data-tone="danger"]  .kpi-v { color: var(--danger); }
+
+        .gauge { margin-top: 24px; }
+        .gauge-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--text-2); }
+        .gauge-head b { color: var(--text); font-variant-numeric: tabular-nums; }
+        .gauge-track { position: relative; height: 10px; border-radius: var(--r-full); background: var(--surface-muted); border: 1px solid var(--border); }
+        .gauge-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; background: var(--text-3); transition: width .25s var(--ease), background-color .2s var(--ease); }
+        .gauge-fill[data-tone="success"] { background: var(--success-solid); }
+        .gauge-fill[data-tone="warning"] { background: var(--warning-solid); }
+        .gauge-fill[data-tone="danger"]  { background: var(--danger-solid); }
+        .marker { position: absolute; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); opacity: .6; }
+        .gauge-legend { position: relative; height: 20px; margin-top: 6px; font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+        .gauge-legend span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+
+        .callout { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 500; }
+        .callout--danger { background: var(--danger-bg); border: 1px solid var(--danger-bd); color: var(--danger); }
+
+        .maxd { margin-top: 20px; padding: 16px; border-radius: 12px; border: 1px dashed var(--border-strong); background: var(--primary-50); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .maxd-k { font-size: 13px; font-weight: 500; color: var(--text-2); }
+        .maxd-v { font-size: 22px; font-weight: 700; letter-spacing: -.015em; font-variant-numeric: tabular-nums; }
+        .maxd-s { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+        .card-foot { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-3); }
+
+        /* =========================================================
+           9. COMPARATEUR D'OFFRES
+           ========================================================= */
+        .sc-empty { font-size: 14px; color: var(--text-3); }
+        .sc-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .sc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .sc-table th, .sc-table td { padding: 10px 8px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .sc-table th:first-child, .sc-table td:first-child { text-align: left; color: var(--text-2); font-weight: 500; padding-left: 0; }
+        .sc-table thead th { vertical-align: bottom; font-size: 13px; font-weight: 700; color: var(--text); }
+        .sc-table tr.total td { font-weight: 700; color: var(--text); }
+        .sc-table tr.total td:first-child { color: var(--text); }
+        @media (max-width: 639px) {
+            .sc-table { font-size: 13px; }
+            .sc-table th, .sc-table td { padding: 9px 6px; }
+        }
+        .sc-table tfoot td { border-bottom: 0; padding-top: 4px; padding-bottom: 0; }
+        .sc-title { display: inline-flex; align-items: center; gap: 6px; }
+        .sc-letter { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary-600); color: #fff; font-size: 12px; font-weight: 700; }
+        .sc-label { display: block; margin-top: 2px; max-width: 150px; margin-left: auto; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 500; color: var(--text-3); }
+        .sc-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: 0; }
+
+        /* Export */
+        .copy-card { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px; }
+        @media (min-width: 640px) { .copy-card { flex-direction: row; align-items: center; justify-content: space-between; } }
+        .copy-title { font-size: 14px; font-weight: 600; }
+        .copy-hint { font-size: 13px; color: var(--text-3); }
+        .export-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        @media (max-width: 639px) { .export-actions .btn { flex: 1 1 auto; } }
+
+        /* =========================================================
+           10. PIED DE PAGE, BARRE MOBILE, TOAST, DIALOGUE
+           ========================================================= */
+        footer { width: 100%; max-width: 1120px; margin: 0 auto; padding: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-3); }
+        kbd { font-family: inherit; font-size: 11px; font-weight: 600; padding: 1px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--surface); }
+
+        .mbar {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+            background: var(--surface); border-top: 1px solid var(--border);
+            box-shadow: 0 -6px 20px -10px rgba(16, 24, 40, .25);
+            transition: transform .22s var(--ease);
+        }
+        .mbar.is-hidden { transform: translateY(110%); }
+        .mbar-k { font-size: 12px; font-weight: 500; color: var(--text-3); font-variant-numeric: tabular-nums; }
+        .mbar-v { font-size: 22px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+        .mbar-v small { font-size: 13px; font-weight: 600; color: var(--text-3); }
+        @media (max-width: 1023px) { body { padding-bottom: 84px; } }
+        @media (min-width: 1024px) { .mbar { display: none; } }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 24px; z-index: 70;
+            display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px);
+            padding: 10px 12px 10px 16px; min-height: 48px; border-radius: 12px;
+            background: var(--toast-bg); color: #fff; box-shadow: var(--shadow-pop);
+            font-size: 14px; font-weight: 500;
+            opacity: 0; transform: translate(-50%, 16px); pointer-events: none;
+            transition: opacity .2s var(--ease), transform .2s var(--ease);
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.show.has-action { pointer-events: auto; }
+        .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: #34D399; }
+        .toast-action { margin-left: 4px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, .16); color: #fff; font-size: 13px; font-weight: 700; }
+        .toast-action:hover { background: rgba(255, 255, 255, .26); }
+        @media (max-width: 1023px) { .toast { bottom: 100px; } }
+
+        dialog { width: min(440px, calc(100% - 32px)); padding: 0; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); color: var(--text); box-shadow: var(--shadow-pop); }
+        dialog::backdrop { background: rgba(11, 16, 32, .5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+        .dlg-body { padding: 24px; }
+        .dlg-title { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+        .dlg-section + .dlg-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .dlg-h { font-size: 14px; font-weight: 700; }
+        .dlg-text { margin-top: 4px; font-size: 13px; color: var(--text-2); }
+        .dlg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        .dlg-grid .field + .field { margin-top: 0; }
+        .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--border); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+        }
+
+        /* =========================================================
+           11. DEVIS IMPRIMABLE (A4) — jamais de données internes
+           ========================================================= */
+        #printQuote { display: none; }
+        .pq-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 14px; margin-bottom: 24px; border-bottom: 2px solid #0B1533; }
+        .pq-title { font-size: 22pt; font-weight: 700; letter-spacing: -.02em; color: #0B1533; }
+        .pq-sub { margin-top: 4px; font-size: 12pt; font-weight: 600; color: #0F172A; }
+        .pq-meta { font-size: 10pt; color: #475569; text-align: right; white-space: nowrap; }
+        .pq-h2 { margin: 28px 0 8px; font-size: 12pt; font-weight: 700; color: #0B1533; }
+        .pq-table { width: 100%; border-collapse: collapse; font-size: 11pt; font-variant-numeric: tabular-nums; }
+        .pq-table th, .pq-table td { padding: 8px 10px; border-bottom: 1px solid #E3E6EB; text-align: right; }
+        .pq-table th:first-child, .pq-table td:first-child { text-align: left; }
+        .pq-table thead th { background: #F1F3F6; font-size: 9pt; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #475569; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .pq-total td { font-size: 13pt; font-weight: 700; border-top: 2px solid #0B1533; border-bottom: 0; color: #0B1533; }
+        .pq-foot { margin-top: 36px; font-size: 9pt; color: #64748B; }
+
+        @media print {
+            @page { size: A4; margin: 16mm; }
+            :root { color-scheme: light; }
+            body { display: block; min-height: 0; padding: 0 !important; background: #fff !important; color: #0F172A !important; font-size: 11pt; }
+            body::before { display: none !important; }
+            body > *:not(#printQuote) { display: none !important; }
+            #printQuote { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================== EN-TÊTE ===================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/>
+                        <line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">Calculatrice Commerciale</h1>
+                    <p class="brand-sub hide-sm">Proposition tarifaire</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="settingsBtn" type="button" class="btn btn-ghost btn-icon" data-internal aria-label="Réglages" title="Réglages (seuils de marge, thème)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                        <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+                    </svg>
+                </button>
+
+                <button id="clientBtn" type="button" class="btn btn-secondary btn-client" aria-pressed="false"
+                        title="Masquer les données internes pour montrer l'écran au client (touche V)">
+                    <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                        <path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>
+                    </svg>
+                    <span id="clientLabel">Vue client</span>
+                    <span class="hold" aria-hidden="true"></span>
+                </button>
+
+                <button id="resetBtn" type="button" class="btn btn-ghost" title="Remettre tous les champs à zéro">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+                    </svg>
+                    <span class="hide-sm">Réinitialiser</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================== CONTENU ===================== -->
+    <main>
+        <div class="grid">
+
+            <!-- Colonne gauche : saisie -->
+            <section class="stack" aria-label="Paramètres de l'offre">
+                <div class="card">
+                    <div class="card-head">
+                        <h2 class="overline">Paramètres de l'offre</h2>
+                    </div>
+
+                    <!-- Objet de l'offre -->
+                    <div class="field">
+                        <div class="field-head">
+                            <label for="offerLabel" class="label">Objet de l'offre <small>(facultatif)</small></label>
+                        </div>
+                        <input id="offerLabel" class="input input--text" type="text" autocomplete="off" maxlength="80" placeholder="ex. Licence annuelle – 3 postes">
+                    </div>
+
+                    <!-- Prix d'achat (interne) -->
+                    <div class="field" data-internal>
+                        <div class="field-head">
+                            <label for="purchasePrice" class="label">Prix d'achat HT <small>(unitaire)</small></label>
+                            <span class="tag">Coût interne</span>
+                        </div>
+                        <div class="input-wrap">
+                            <input id="purchasePrice" class="input input--lg" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" aria-describedby="err-purchase">
+                            <span class="suffix">€</span>
+                        </div>
+                        <p id="err-purchase" class="field-error" role="alert"></p>
+                    </div>
+
+                    <!-- Prix catalogue -->
+                    <div class="field">
+                        <div class="field-head">
+                            <label for="sellingPrice" class="label">Prix de vente HT <small>(catalogue, unitaire)</small></label>
+                        </div>
+                        <div class="input-wrap">
+                            <input id="sellingPrice" class="input input--lg" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" aria-describedby="err-selling">
+                            <span class="suffix">€</span>
+                        </div>
+                        <p id="err-selling" class="field-error" role="alert"></p>
+                    </div>
+
+                    <!-- Quantité -->
+                    <div class="field">
+                        <div class="field-head">
+                            <label for="qty" class="label">Quantité</label>
+                        </div>
+                        <div class="stepper">
+                            <button id="qtyMinus" type="button" class="btn btn-secondary step-btn" aria-label="Diminuer la quantité">−</button>
+                            <div class="input-wrap">
+                                <input id="qty" class="input input--md input--center" type="text" inputmode="numeric" autocomplete="off" value="1" aria-describedby="err-qty">
+                            </div>
+                            <button id="qtyPlus" type="button" class="btn btn-secondary step-btn" aria-label="Augmenter la quantité">+</button>
+                        </div>
+                        <p id="err-qty" class="field-error" role="alert"></p>
+                    </div>
+
+                    <!-- Remise -->
+                    <div class="field">
+                        <div class="field-head">
+                            <label for="discountRate" class="label">Remise <small>(unitaire)</small></label>
+                            <div class="seg" role="group" aria-label="Unité de la remise">
+                                <button type="button" class="unit-btn" data-unit="pct" aria-pressed="true">%</button>
+                                <button type="button" class="unit-btn" data-unit="eur" aria-pressed="false">€ HT</button>
+                            </div>
+                        </div>
+                        <div class="input-wrap">
+                            <input id="discountRate" class="input input--md" type="text" inputmode="decimal" autocomplete="off" value="0" placeholder="0" aria-describedby="discountDelta err-discount">
+                            <span id="discountSuffix" class="suffix">%</span>
+                        </div>
+                        <p id="err-discount" class="field-error" role="alert"></p>
+                        <p id="discountDelta" class="delta"></p>
+                        <div class="pills" role="group" aria-label="Raccourcis de remise">
+                            <button type="button" class="pill" data-discount="0" aria-pressed="true">0&nbsp;%</button>
+                            <button type="button" class="pill" data-discount="5" aria-pressed="false">5&nbsp;%</button>
+                            <button type="button" class="pill" data-discount="10" aria-pressed="false">10&nbsp;%</button>
+                            <button type="button" class="pill" data-discount="15" aria-pressed="false">15&nbsp;%</button>
+                            <button type="button" class="pill" data-discount="20" aria-pressed="false">20&nbsp;%</button>
+                        </div>
+                    </div>
+
+                    <!-- Prix cible (calcul inversé) -->
+                    <div class="field">
+                        <div class="field-head">
+                            <label for="targetPrice" class="label">Prix cible <small>(unitaire)</small></label>
+                            <div class="seg" role="group" aria-label="Base du prix cible">
+                                <button type="button" class="basis-btn" data-basis="HT" aria-pressed="true">HT</button>
+                                <button type="button" class="basis-btn" data-basis="TTC" aria-pressed="false">TTC</button>
+                            </div>
+                        </div>
+                        <div class="input-wrap">
+                            <input id="targetPrice" class="input input--md" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" aria-describedby="targetHint err-target">
+                            <span class="suffix">€</span>
+                        </div>
+                        <p id="err-target" class="field-error" role="alert"></p>
+                        <p id="targetHint" class="field-hint">Saisissez le prix souhaité par le client : la remise est calculée automatiquement.</p>
+                    </div>
+
+                    <!-- TVA -->
+                    <div class="field field-sep">
+                        <div class="field-head">
+                            <label for="vatRate" class="label">Taux de TVA</label>
+                            <span id="vatPreview" class="num" style="font-size:13px;font-weight:500;color:var(--text-3)"></span>
+                        </div>
+                        <div class="input-wrap">
+                            <input id="vatRate" class="input input--md" type="text" inputmode="decimal" autocomplete="off" value="20" aria-describedby="err-vat">
+                            <span class="suffix">%</span>
+                        </div>
+                        <p id="err-vat" class="field-error" role="alert"></p>
+                        <div class="pills" role="group" aria-label="Raccourcis de TVA">
+                            <button type="button" class="pill" data-vat="20" aria-pressed="true">20&nbsp;%</button>
+                            <button type="button" class="pill" data-vat="10" aria-pressed="false">10&nbsp;%</button>
+                            <button type="button" class="pill" data-vat="5.5" aria-pressed="false">5,5&nbsp;%</button>
+                            <button type="button" class="pill" data-vat="2.1" aria-pressed="false">2,1&nbsp;%</button>
+                            <button type="button" class="pill" data-vat="0" aria-pressed="false">0&nbsp;%</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Colonne droite : résultats -->
+            <section class="stack" aria-label="Résultats">
+
+                <!-- Proposition client -->
+                <div id="heroCard" class="hero">
+                    <div class="hero-top">
+                        <span id="heroLabel" class="hero-label">Prix de vente TTC</span>
+                        <span id="vatChip" class="hero-chip num">TVA 20 %</span>
+                    </div>
+                    <span id="ttcAmount" class="hero-amount">0,00 €</span>
+                    <p id="vatSub" class="hero-sub num">dont 0,00 € de TVA</p>
+                    <div class="hero-split">
+                        <div>
+                            <div id="htLabel" class="hero-k">Prix net HT</div>
+                            <div id="htNet" class="hero-v">0,00 €</div>
+                            <span id="htStrike" class="strike" hidden></span>
+                            <span id="htUnit" class="hero-unit" hidden></span>
+                        </div>
+                        <div>
+                            <div class="hero-k">Remise</div>
+                            <div id="discountSummary" class="hero-v">Aucune</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rentabilité (interne) -->
+                <div class="card" data-internal>
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <h2 class="overline">Rentabilité</h2>
+                            <span class="tag">Interne</span>
+                        </div>
+                        <span id="statusChip" class="chip">En attente du prix de vente</span>
+                    </div>
+
+                    <div class="kpis">
+                        <div id="kpiMargin" class="kpi">
+                            <span id="marginTitle" class="kpi-k">Marge brute</span>
+                            <span id="marginValue" class="kpi-v">—</span>
+                            <span id="marginUnit" class="kpi-c" hidden></span>
+                            <div class="kpi-s"><span>Taux de marge</span><b id="marginRateValue">—</b></div>
+                        </div>
+                        <div id="kpiMarkup" class="kpi">
+                            <span class="kpi-k">Taux de marque</span>
+                            <span id="markupValue" class="kpi-v">—</span>
+                            <div class="kpi-s"><span>Objectif</span><b id="goalValue">30 %</b></div>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-k">Coeff. HT / HT</span>
+                            <span id="coefHtValue" class="kpi-v">—</span>
+                            <div class="kpi-s"><span>TTC / achat</span><b id="coefTtcValue">—</b></div>
+                        </div>
+                    </div>
+
+                    <div class="gauge">
+                        <div class="gauge-head"><span>Taux de marque</span><b id="gaugeValue">—</b></div>
+                        <div id="gaugeTrack" class="gauge-track" role="img" aria-label="Jauge du taux de marque">
+                            <div id="gaugeFill" class="gauge-fill"></div>
+                            <div id="markerFloor" class="marker"></div>
+                            <div id="markerGoal" class="marker"></div>
+                        </div>
+                        <div class="gauge-legend" aria-hidden="true">
+                            <span id="labelFloor">Plancher</span>
+                            <span id="labelGoal">Objectif</span>
+                        </div>
+                    </div>
+
+                    <div id="lossCallout" class="callout callout--danger" role="alert" hidden>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span id="lossText"></span>
+                    </div>
+
+                    <div class="maxd">
+                        <div>
+                            <div id="maxdLabel" class="maxd-k">Remise maximale accordable</div>
+                            <div id="maxdValue" class="maxd-v">—</div>
+                            <div id="maxdSub" class="maxd-s">Saisissez le prix d'achat et le prix catalogue.</div>
+                        </div>
+                        <button id="applyMaxBtn" type="button" class="btn btn-secondary" disabled>Appliquer</button>
+                    </div>
+
+                    <div class="card-foot">
+                        <span>Marque = marge / PV HT · Marge = marge / PA HT</span>
+                        <button id="editThresholdsBtn" type="button" class="link-btn">Modifier les seuils</button>
+                    </div>
+                </div>
+
+                <!-- Comparateur d'offres -->
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <h2 class="overline">Comparer les offres</h2>
+                            <span id="scCount" class="tag num">0/3</span>
+                        </div>
+                        <button id="scAddBtn" type="button" class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Ajouter l'offre actuelle
+                        </button>
+                    </div>
+                    <p id="scEmpty" class="sc-empty">Mémorisez jusqu'à 3 variantes (A, B, C) pour les présenter côte à côte au client.</p>
+                    <div id="scWrap" class="sc-wrap" hidden></div>
+                </div>
+
+                <!-- Export -->
+                <div class="card copy-card">
+                    <div>
+                        <p class="copy-title">Compte-rendu &amp; devis</p>
+                        <p id="copyHint" class="copy-hint">Copier : récapitulatif complet. Partager et imprimer : proposition client uniquement.</p>
+                    </div>
+                    <div class="export-actions">
+                        <button id="printBtn" type="button" class="btn btn-secondary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                            </svg>
+                            Imprimer
+                        </button>
+                        <button id="shareBtn" type="button" class="btn btn-secondary" hidden>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+                            </svg>
+                            Partager
+                        </button>
+                        <button id="copyBtn" type="button" class="btn btn-primary">
+                            <svg id="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <svg id="checkIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span id="copyBtnText">Copier</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <span>Calculatrice Commerciale</span>
+        <span data-internal>Raccourci : <kbd>V</kbd> vue client · appui long pour en sortir</span>
+    </footer>
+
+    <!-- Barre de résultat fixe (mobile / tablette) -->
+    <div id="mbar" class="mbar" aria-hidden="true">
+        <div>
+            <div id="mbarHt" class="mbar-k">HT net 0,00 €</div>
+            <div class="mbar-v"><span id="mbarTtc">0,00 €</span> <small>TTC</small></div>
+        </div>
+        <span id="mbarStatus" class="chip" data-internal>En attente</span>
+    </div>
+
+    <!-- Réglages -->
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+        <form id="settingsForm" novalidate>
+            <div class="dlg-body">
+                <h2 id="settingsTitle" class="dlg-title">Réglages</h2>
+
+                <div class="dlg-section" style="margin-top:16px">
+                    <p class="dlg-h">Seuils de marge</p>
+                    <p class="dlg-text">En taux de marque (marge / prix de vente HT). Ils pilotent les couleurs et la remise maximale.</p>
+                    <div class="dlg-grid">
+                        <div class="field">
+                            <div class="field-head"><label for="floorInput" class="label">Plancher</label></div>
+                            <div class="input-wrap">
+                                <input id="floorInput" class="input input--md" type="text" inputmode="decimal" autocomplete="off">
+                                <span class="suffix">%</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="field-head"><label for="goalInput" class="label">Objectif</label></div>
+                            <div class="input-wrap">
+                                <input id="goalInput" class="input input--md" type="text" inputmode="decimal" autocomplete="off">
+                                <span class="suffix">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="err-settings" class="field-error" role="alert"></p>
+                </div>
+
+                <div class="dlg-section">
+                    <p class="dlg-h">Apparence</p>
+                    <p class="dlg-text">Appliquée immédiatement et mémorisée sur cet appareil.</p>
+                    <div class="seg seg--full" role="group" aria-label="Thème" style="margin-top:12px">
+                        <button type="button" data-theme-opt="auto" aria-pressed="true">Automatique</button>
+                        <button type="button" data-theme-opt="light" aria-pressed="false">Clair</button>
+                        <button type="button" data-theme-opt="dark" aria-pressed="false">Sombre</button>
+                    </div>
+                </div>
+            </div>
+            <div class="dlg-foot">
+                <button type="button" id="settingsCancel" class="btn btn-ghost">Fermer</button>
+                <button type="submit" class="btn btn-primary">Enregistrer les seuils</button>
+            </div>
+        </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <span class="toast-dot" aria-hidden="true"></span>
+        <span id="toastMsg"></span>
+        <button id="toastAction" type="button" class="toast-action" hidden></button>
+    </div>
+    <div id="liveSummary" class="sr-only" aria-live="polite"></div>
+
+    <!-- Devis imprimable (généré à l'impression) -->
+    <div id="printQuote"></div>
+
+    <script>
+    (() => {
+        'use strict';
+
+        // =====================================================
+        // Constantes, formatage, stockage
+        // =====================================================
+        const $ = (id) => document.getElementById(id);
+        const NNBSP = ' ';
+        const HOLD_MS = 700;
+        const LETTERS = ['A', 'B', 'C'];
+        const DEFAULT_SETTINGS = { floor: 15, goal: 30 };
+        const KEYS = {
+            settings:  'calculatrice-commerciale:seuils',
+            theme:     'calculatrice-commerciale:theme',
+            draft:     'calculatrice-commerciale:saisie',
+            scenarios: 'calculatrice-commerciale:scenarios',
+        };
+
+        const fmtEUR    = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmt2      = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmt1      = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        const fmtFree   = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2, useGrouping: false });
+        const fmtDate   = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const fmtDateSh = new Intl.DateTimeFormat('fr-FR');
+
+        const round2  = (v) => { const r = Math.sign(v) * Math.round(Math.abs(v) * 100 + 1e-9) / 100; return r === 0 ? 0 : r; };
+        const eur     = (v) => fmtEUR.format(v === 0 ? 0 : v);
+        const pct     = (v) => fmt1.format(v) + NNBSP + '%';
+        const pctFree = (v) => fmtFree.format(v) + NNBSP + '%';
+        const coef    = (v) => '×' + NNBSP + fmt2.format(v);
+        const esc     = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+        const store = {
+            get(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+            set(key, value)    { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* stockage indisponible */ } },
+        };
+
+        /** Lecture « à la française » : espaces ignorés, virgule ou point. null = vide, NaN = invalide. */
+        function parseNum(raw) {
+            const s = String(raw ?? '').replace(/[\s  ]/g, '').replace(/,/g, '.');
+            if (s === '') return null;
+            if (!/^\d*\.?\d*$/.test(s) || s === '.') return NaN;
+            return parseFloat(s);
+        }
+
+        // =====================================================
+        // Champs & état
+        // =====================================================
+        const f = {
+            purchase: $('purchasePrice'),
+            selling:  $('sellingPrice'),
+            qty:      $('qty'),
+            discount: $('discountRate'),
+            target:   $('targetPrice'),
+            vat:      $('vatRate'),
+        };
+        const labelInput = $('offerLabel');
+
+        const state = {
+            mode: 'discount',   // 'discount' : la remise pilote · 'target' : le prix cible pilote
+            basis: 'HT',        // base du prix cible
+            unit: 'pct',        // unité de la remise : 'pct' ou 'eur'
+            client: false,
+            settings: loadSettings(),
+            scenarios: loadScenarios(),
+            last: null,
+        };
+
+        function loadSettings() {
+            const s = store.get(KEYS.settings, null);
+            if (s && Number.isFinite(s.floor) && Number.isFinite(s.goal) && s.floor >= 0 && s.goal > s.floor && s.goal < 100) return { floor: s.floor, goal: s.goal };
+            return { ...DEFAULT_SETTINGS };
+        }
+        function loadScenarios() {
+            const s = store.get(KEYS.scenarios, []);
+            return Array.isArray(s) ? s.filter((x) => x && LETTERS.includes(x.letter) && x.inputs).slice(0, 3) : [];
+        }
+
+        function setError(key, msg) {
+            f[key].setAttribute('aria-invalid', msg ? 'true' : 'false');
+            $('err-' + key).textContent = msg;
+        }
+
+        /** Lit les champs du formulaire et affiche les erreurs de saisie. */
+        function readDom() {
+            const out = {};
+            for (const key of Object.keys(f)) {
+                let v = parseNum(f[key].value);
+                let msg = '';
+                if (Number.isNaN(v)) { msg = 'Saisissez un nombre valide (ex. 1 250,50).'; v = null; }
+                else if (v !== null) {
+                    if (key === 'vat' && v > 100) { msg = 'Le taux de TVA ne peut pas dépasser 100 %.'; v = 100; }
+                    if (key === 'discount' && state.unit === 'pct' && v > 100) { msg = 'La remise ne peut pas dépasser 100 %.'; v = 100; }
+                    if (key === 'qty' && (v < 1 || !Number.isInteger(v))) { msg = "Indiquez une quantité entière d'au moins 1."; v = Math.max(1, Math.floor(v)); }
+                }
+                setError(key, msg);
+                out[key] = v;
+            }
+            return out;
+        }
+
+        /** Même lecture, sans affichage, pour une offre mémorisée. */
+        function valuesFromInputs(inp) {
+            const p = (k) => { const v = parseNum(inp[k]); return Number.isNaN(v) ? null : v; };
+            const out = { purchase: p('purchase'), selling: p('selling'), target: p('target'), vat: p('vat'), discount: p('discount'), qty: p('qty') };
+            if (out.vat !== null) out.vat = Math.min(out.vat, 100);
+            if (out.discount !== null && inp.unit !== 'eur') out.discount = Math.min(out.discount, 100);
+            if (out.qty !== null) out.qty = Math.max(1, Math.floor(out.qty));
+            return out;
+        }
+
+        // =====================================================
+        // Calculs (fonction pure)
+        // =====================================================
+        function computeFrom(v, ctx) {
+            const { floor, goal } = state.settings;
+            const pa = v.purchase;
+            const cat = v.selling ?? 0;
+            const vat = v.vat ?? 0;
+            const qty = v.qty ?? 1;
+            const target = v.target;
+
+            let net, discount, discountAmount, targetInfo = null, discountCapped = false;
+            const targetMode = ctx.mode === 'target' && target !== null && target > 0;
+
+            if (targetMode) {
+                // Calcul inversé : le prix cible fixe le net HT unitaire, la remise en découle
+                const targetHT = ctx.basis === 'TTC' ? round2(target / (1 + vat / 100)) : round2(target);
+                net = targetHT;
+                if (cat <= 0)            { discount = 0; discountAmount = 0; targetInfo = { kind: 'nocat' }; }
+                else if (targetHT > cat) { discount = 0; discountAmount = 0; targetInfo = { kind: 'above', diff: round2(targetHT - cat) }; }
+                else                     { discount = (cat - targetHT) / cat * 100; discountAmount = round2(cat - targetHT); targetInfo = { kind: 'ok' }; }
+            } else if (ctx.unit === 'eur') {
+                let amount = v.discount ?? 0;
+                if (cat > 0 && amount > cat) { amount = cat; discountCapped = true; }
+                if (cat <= 0) amount = 0;
+                net = round2(cat - amount);
+                discountAmount = round2(cat - net);
+                discount = cat > 0 ? discountAmount / cat * 100 : 0;
+            } else {
+                discount = v.discount ?? 0;
+                net = round2(cat * (1 - discount / 100));     // arrondi au centime, comme sur une facture
+                discountAmount = round2(cat - net);
+            }
+
+            // Unitaire
+            const ttcUnit = round2(net + round2(net * vat / 100));
+            // Totaux de la ligne (TVA calculée sur le total HT, comme une facture)
+            const totalHT = round2(net * qty);
+            const catTotal = round2(cat * qty);
+            const totalDiscount = round2(discountAmount * qty);
+            const vatAmount = round2(totalHT * vat / 100);
+            const ttc = round2(totalHT + vatAmount);
+
+            const hasPA = pa !== null;
+            const ready = hasPA && net > 0;
+            const margin = hasPA ? round2(net - pa) : null;
+            const marginTotal = hasPA ? round2(totalHT - round2(pa * qty)) : null;
+            const markup = ready ? (net - pa) / net * 100 : null;               // taux de marque
+            const marginRate = hasPA && pa > 0 ? (net - pa) / pa * 100 : null;   // taux de marge
+            const coefHT = hasPA && pa > 0 ? net / pa : null;
+            const coefTTC = hasPA && pa > 0 ? ttcUnit / pa : null;
+
+            // Remise maximale pour rester au-dessus du plancher
+            let maxd = null;
+            if (hasPA && pa > 0 && cat > 0) {
+                const floorNet = pa / (1 - floor / 100);
+                let d = Math.floor((1 - floorNet / cat) * 10000) / 100;
+                while (d > 0 && round2(cat * (1 - d / 100)) < floorNet - 1e-9) d = round2(d - 0.01);
+                const netAtMax = round2(cat * (1 - Math.max(d, 0) / 100));
+                maxd = { discount: d, amount: round2(cat - netAtMax), floorNet: Math.ceil(floorNet * 100 - 1e-6) / 100 };
+            }
+
+            let status;
+            if (net <= 0)            status = { tone: 'neutral', label: 'En attente du prix de vente' };
+            else if (!hasPA)         status = { tone: 'neutral', label: "Prix d'achat à saisir" };
+            else if (margin < 0)     status = { tone: 'danger',  label: 'Vente à perte' };
+            else if (markup < floor) status = { tone: 'danger',  label: 'Sous le plancher' };
+            else if (markup < goal)  status = { tone: 'warning', label: 'Marge faible' };
+            else                     status = { tone: 'success', label: 'Marge saine' };
+
+            return { pa, hasPA, ready, cat, vat, qty, target, targetMode, targetInfo, discountCapped,
+                     net, discount, discountAmount, ttcUnit, totalHT, catTotal, totalDiscount, vatAmount, ttc,
+                     margin, marginTotal, markup, marginRate, coefHT, coefTTC, maxd, status, floor, goal };
+        }
+
+        const ctxNow = () => ({ mode: state.mode, basis: state.basis, unit: state.unit });
+
+        // =====================================================
+        // Rendu
+        // =====================================================
+        const discountPills = document.querySelectorAll('[data-discount]');
+        const vatPills = document.querySelectorAll('[data-vat]');
+        const setPills = (pills, attr, value) => pills.forEach((p) => p.setAttribute('aria-pressed', String(Math.abs(parseFloat(p.dataset[attr]) - value) < 0.005)));
+        const setTone = (el, tone) => { if (tone && tone !== 'neutral') el.dataset.tone = tone; else delete el.dataset.tone; };
+        const chipClass = (tone) => 'chip' + (tone !== 'neutral' ? ' chip--' + tone : '');
+        const unitSuffix = (c) => (c.qty > 1 ? ' / unité' : '');
+
+        let liveTimer;
+        function render() {
+            const c = computeFrom(readDom(), ctxNow());
+            state.last = c;
+
+            if (c.discountCapped) setError('discount', 'La remise dépasse le prix catalogue.');
+
+            // Remise affichée quand le prix cible pilote
+            if (c.targetMode && document.activeElement !== f.discount) {
+                f.discount.value = state.unit === 'eur'
+                    ? (c.discountAmount > 0 ? fmt2.format(c.discountAmount) : '0')
+                    : (c.discount > 0 ? fmtFree.format(round2(c.discount)) : '0');
+                setError('discount', '');
+            }
+            setPills(discountPills, 'discount', c.discount);
+            setPills(vatPills, 'vat', c.vat);
+
+            // --- Proposition client ---
+            const hasDiscount = c.discountAmount > 0;
+            $('heroLabel').textContent = c.qty > 1 ? `Total TTC · ${c.qty} unités` : 'Prix de vente TTC';
+            $('ttcAmount').textContent = eur(c.ttc);
+            $('vatChip').textContent = 'TVA ' + pctFree(c.vat);
+            $('vatSub').textContent = c.vat > 0 ? `dont ${eur(c.vatAmount)} de TVA` : 'Sans TVA';
+            $('vatPreview').textContent = `TVA : ${eur(c.vatAmount)}`;
+            $('htLabel').textContent = c.qty > 1 ? 'Total net HT' : 'Prix net HT';
+            $('htNet').textContent = eur(c.totalHT);
+            $('htStrike').hidden = !hasDiscount;
+            $('htStrike').textContent = hasDiscount ? eur(c.catTotal) : '';
+            $('htUnit').hidden = c.qty <= 1;
+            $('htUnit').textContent = c.qty > 1 ? `${c.qty} × ${eur(c.net)}` : '';
+            $('discountSummary').innerHTML = hasDiscount
+                ? `<span class="saving">−${pctFree(round2(c.discount))}</span> <small class="saving">(−${eur(c.totalDiscount)})</small>`
+                : 'Aucune';
+            $('discountDelta').textContent = hasDiscount
+                ? (state.unit === 'eur' ? `soit −${pctFree(round2(c.discount))}` : `soit −${eur(c.discountAmount)} HT${unitSuffix(c)}`)
+                : '';
+
+            // --- Prix cible ---
+            const hint = $('targetHint');
+            hint.className = 'field-hint';
+            if (c.targetMode && c.targetInfo) {
+                if (c.targetInfo.kind === 'ok') {
+                    hint.classList.add('is-info');
+                    hint.textContent = `Remise correspondante : ${pctFree(round2(c.discount))} (−${eur(c.discountAmount)} HT${unitSuffix(c)})` +
+                        (state.basis === 'TTC' ? ` · net HT ${eur(c.net)} · TTC obtenu ${eur(c.ttcUnit)}` : '');
+                } else if (c.targetInfo.kind === 'above') {
+                    hint.classList.add('is-warn');
+                    hint.textContent = `Prix cible supérieur au catalogue de ${eur(c.targetInfo.diff)} HT : aucune remise appliquée.`;
+                } else {
+                    hint.classList.add('is-warn');
+                    hint.textContent = 'Sans prix catalogue, le prix cible est utilisé comme prix de vente.';
+                }
+            } else {
+                hint.textContent = 'Saisissez le prix souhaité par le client : la remise est calculée automatiquement.';
+            }
+            f.target.placeholder = c.net > 0 ? fmt2.format(state.basis === 'TTC' ? c.ttcUnit : c.net) : '0,00';
+
+            // --- Rentabilité ---
+            const tone = c.ready ? c.status.tone : 'neutral';
+            $('statusChip').className = chipClass(c.status.tone);
+            $('statusChip').textContent = c.status.label;
+
+            $('marginTitle').textContent = c.qty > 1 ? 'Marge brute totale' : 'Marge brute';
+            $('marginValue').textContent = c.ready ? (c.marginTotal > 0 ? '+' + NNBSP : '') + eur(c.marginTotal) : '—';
+            $('marginUnit').hidden = !(c.ready && c.qty > 1);
+            $('marginUnit').textContent = c.ready && c.qty > 1 ? `soit ${eur(c.margin)} / unité` : '';
+            $('marginRateValue').textContent = c.ready && c.marginRate !== null ? pct(c.marginRate) : '—';
+            $('markupValue').textContent = c.ready ? pct(c.markup) : '—';
+            $('goalValue').textContent = pctFree(c.goal);
+            $('coefHtValue').textContent = c.ready && c.coefHT !== null ? coef(c.coefHT) : '—';
+            $('coefTtcValue').textContent = c.ready && c.coefTTC !== null ? coef(c.coefTTC) : '—';
+            setTone($('kpiMargin'), tone);
+            setTone($('kpiMarkup'), tone);
+
+            // Jauge (échelle fixe pour que les repères ne bougent pas pendant la saisie)
+            const scaleMax = Math.min(100, Math.max(50, Math.ceil(c.goal * 1.6 / 10) * 10));
+            const pos = (v) => Math.min(100, Math.max(0, v / scaleMax * 100));
+            $('gaugeValue').textContent = c.ready ? pct(c.markup) : '—';
+            $('gaugeFill').style.width = c.ready ? pos(c.markup) + '%' : '0%';
+            setTone($('gaugeFill'), tone);
+            ['markerFloor', 'labelFloor'].forEach((id) => { $(id).style.left = pos(c.floor) + '%'; });
+            ['markerGoal', 'labelGoal'].forEach((id) => { $(id).style.left = pos(c.goal) + '%'; });
+            $('labelFloor').textContent = 'Plancher ' + pctFree(c.floor);
+            $('labelGoal').textContent = 'Objectif ' + pctFree(c.goal);
+            $('gaugeTrack').setAttribute('aria-label', c.ready
+                ? `Taux de marque ${pct(c.markup)}, plancher ${pctFree(c.floor)}, objectif ${pctFree(c.goal)}`
+                : 'Taux de marque non calculé');
+
+            const isLoss = c.ready && c.margin < 0;
+            $('lossCallout').hidden = !isLoss;
+            $('lossText').textContent = isLoss
+                ? `Le prix net HT est inférieur au prix d'achat : perte de ${eur(-c.margin)} par unité` + (c.qty > 1 ? ` (${eur(-c.marginTotal)} au total).` : '.')
+                : '';
+
+            // Remise maximale
+            $('maxdLabel').textContent = `Remise max. (plancher ${pctFree(c.floor)})`;
+            const applyBtn = $('applyMaxBtn');
+            if (!c.maxd) {
+                $('maxdValue').textContent = '—';
+                $('maxdSub').textContent = c.hasPA ? 'Saisissez le prix catalogue.' : "Saisissez le prix d'achat et le prix catalogue.";
+                applyBtn.disabled = true;
+            } else if (c.maxd.discount < 0) {
+                $('maxdValue').textContent = 'Aucune';
+                $('maxdSub').textContent = `Le catalogue est déjà sous le plancher (prix plancher HT ${eur(c.maxd.floorNet)}).`;
+                applyBtn.disabled = true;
+            } else {
+                $('maxdValue').textContent = pctFree(c.maxd.discount);
+                $('maxdSub').textContent = `Soit −${eur(c.maxd.amount)} HT / unité · prix plancher HT ${eur(c.maxd.floorNet)}`;
+                applyBtn.disabled = false;
+            }
+
+            // --- Barre mobile ---
+            $('mbarTtc').textContent = eur(c.ttc);
+            $('mbarHt').textContent = (c.qty > 1 ? `${c.qty} unités · HT net ` : 'HT net ') + eur(c.totalHT);
+            $('mbarStatus').className = chipClass(c.status.tone);
+            $('mbarStatus').textContent = c.status.label;
+
+            renderScenarios();
+            scheduleDraftSave();
+
+            // --- Annonce lecteur d'écran (différée) ---
+            clearTimeout(liveTimer);
+            liveTimer = setTimeout(() => {
+                let msg = `Total TTC ${eur(c.ttc)}`;
+                if (!state.client && c.ready) msg += `. ${c.status.label}, taux de marque ${pct(c.markup)}`;
+                $('liveSummary').textContent = msg;
+            }, 700);
+        }
+
+        // =====================================================
+        // Instantané de saisie (brouillon, offres, annulation)
+        // =====================================================
+        function getInputs() {
+            return {
+                label: labelInput.value.trim(),
+                purchase: f.purchase.value, selling: f.selling.value, qty: f.qty.value,
+                discount: f.discount.value, target: f.target.value, vat: f.vat.value,
+                unit: state.unit, basis: state.basis, mode: state.mode,
+            };
+        }
+        function syncToggles() {
+            document.querySelectorAll('.basis-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.basis === state.basis)));
+            document.querySelectorAll('.unit-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.unit === state.unit)));
+            $('discountSuffix').textContent = state.unit === 'eur' ? '€' : '%';
+        }
+        function applyInputs(inp) {
+            labelInput.value = inp.label || '';
+            f.purchase.value = inp.purchase || '';
+            f.selling.value = inp.selling || '';
+            f.qty.value = inp.qty || '1';
+            f.discount.value = inp.discount || '0';
+            f.target.value = inp.target || '';
+            f.vat.value = inp.vat ?? '20';
+            state.unit = inp.unit === 'eur' ? 'eur' : 'pct';
+            state.basis = inp.basis === 'TTC' ? 'TTC' : 'HT';
+            state.mode = inp.mode === 'target' && f.target.value.trim() ? 'target' : 'discount';
+            syncToggles();
+            render();
+        }
+
+        let draftTimer;
+        function scheduleDraftSave() {
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(() => store.set(KEYS.draft, getInputs()), 300);
+        }
+
+        // =====================================================
+        // Saisie
+        // =====================================================
+        Object.entries(f).forEach(([key, input]) => {
+            let justFocused = false;
+
+            input.addEventListener('input', () => {
+                const pattern = key === 'qty' ? /[^\d]/g : /[^\d.,\s  ]/g;
+                const clean = input.value.replace(pattern, '');
+                if (clean !== input.value) {
+                    const caret = Math.max(0, (input.selectionStart || 0) - (input.value.length - clean.length));
+                    input.value = clean;
+                    try { input.setSelectionRange(caret, caret); } catch (e) { /* ignoré */ }
+                }
+                if (key === 'discount') { state.mode = 'discount'; f.target.value = ''; setError('target', ''); }
+                if (key === 'target')   { state.mode = input.value.trim() ? 'target' : 'discount'; }
+                render();
+            });
+
+            // Sélection complète au focus : on retape directement par-dessus
+            input.addEventListener('focus', () => {
+                justFocused = true;
+                requestAnimationFrame(() => { try { input.setSelectionRange(0, input.value.length); } catch (e) { input.select(); } });
+            });
+            input.addEventListener('mouseup', (e) => { if (justFocused) { e.preventDefault(); justFocused = false; } });
+
+            // Mise en forme à la sortie du champ
+            input.addEventListener('blur', () => {
+                justFocused = false;
+                const v = parseNum(input.value);
+                if (v === null || Number.isNaN(v)) return;
+                if (key === 'qty') input.value = String(Math.max(1, Math.floor(v)));
+                else if (key === 'discount') input.value = state.unit === 'eur' ? fmt2.format(v) : fmtFree.format(Math.min(v, 100));
+                else if (key === 'vat') input.value = fmtFree.format(Math.min(v, 100));
+                else input.value = fmt2.format(v);
+                render();
+            });
+        });
+        labelInput.addEventListener('input', scheduleDraftSave);
+
+        // Quantité : boutons − / +
+        const stepQty = (delta) => {
+            const v = parseNum(f.qty.value);
+            const cur = Number.isFinite(v) && v >= 1 ? Math.floor(v) : 1;
+            f.qty.value = String(Math.max(1, cur + delta));
+            render();
+        };
+        $('qtyMinus').addEventListener('click', () => stepQty(-1));
+        $('qtyPlus').addEventListener('click', () => stepQty(1));
+
+        // Raccourcis
+        discountPills.forEach((b) => b.addEventListener('click', () => {
+            state.mode = 'discount';
+            state.unit = 'pct';
+            syncToggles();
+            f.target.value = '';
+            setError('target', '');
+            f.discount.value = fmtFree.format(parseFloat(b.dataset.discount));
+            render();
+        }));
+        vatPills.forEach((b) => b.addEventListener('click', () => {
+            f.vat.value = fmtFree.format(parseFloat(b.dataset.vat));
+            render();
+        }));
+
+        // Unité de remise % / € : la valeur est convertie pour garder le même prix
+        document.querySelectorAll('.unit-btn').forEach((b) => b.addEventListener('click', () => {
+            const unit = b.dataset.unit;
+            if (unit === state.unit) return;
+            const c = state.last;
+            state.unit = unit;
+            if (c && !c.targetMode) {
+                f.discount.value = unit === 'eur'
+                    ? (c.discountAmount > 0 ? fmt2.format(c.discountAmount) : '0')
+                    : (c.discount > 0 ? fmtFree.format(round2(c.discount)) : '0');
+            }
+            syncToggles();
+            render();
+        }));
+
+        // Base du prix cible HT / TTC : la valeur est convertie pour garder le même prix
+        document.querySelectorAll('.basis-btn').forEach((b) => b.addEventListener('click', () => {
+            const basis = b.dataset.basis;
+            if (basis === state.basis) return;
+            const c = state.last;
+            state.basis = basis;
+            if (state.mode === 'target' && c && c.net > 0) f.target.value = fmt2.format(basis === 'TTC' ? c.ttcUnit : c.net);
+            syncToggles();
+            render();
+        }));
+
+        $('applyMaxBtn').addEventListener('click', () => {
+            const c = state.last;
+            if (!c || !c.maxd || c.maxd.discount < 0) return;
+            state.mode = 'discount';
+            f.target.value = '';
+            f.discount.value = state.unit === 'eur' ? fmt2.format(c.maxd.amount) : fmtFree.format(c.maxd.discount);
+            render();
+            toast('Remise maximale appliquée');
+        });
+
+        // =====================================================
+        // Vue Client
+        // =====================================================
+        const clientBtn = $('clientBtn');
+        let holdTimer = null;
+        let holdExited = false;
+
+        function setClient(on) {
+            state.client = on;
+            document.body.classList.toggle('client-mode', on);
+            document.body.classList.add('mode-switch');
+            setTimeout(() => document.body.classList.remove('mode-switch'), 260);
+            clientBtn.setAttribute('aria-pressed', String(on));
+            $('clientLabel').textContent = on ? 'Présentation' : 'Vue client';
+            clientBtn.title = on
+                ? 'Maintenir appuyé (ou touche V) pour revenir à la vue complète'
+                : "Masquer les données internes pour montrer l'écran au client (touche V)";
+            $('copyHint').textContent = on
+                ? 'Copiez, partagez ou imprimez la proposition.'
+                : 'Copier : récapitulatif complet. Partager et imprimer : proposition client uniquement.';
+            if (on && document.activeElement === f.purchase) f.purchase.blur();
+            render();
+        }
+
+        // Entrée : un simple appui. Sortie : appui long (évite qu'un client la déclenche par erreur).
+        clientBtn.addEventListener('pointerdown', (e) => {
+            holdExited = false;
+            if (!state.client || e.button > 0) return;
+            clientBtn.classList.add('holding');
+            holdTimer = setTimeout(() => {
+                holdTimer = null;
+                clientBtn.classList.remove('holding');
+                holdExited = true;
+                setClient(false);
+                if (navigator.vibrate) navigator.vibrate(15);
+            }, HOLD_MS);
+        });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => clientBtn.addEventListener(t, () => {
+            if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+            clientBtn.classList.remove('holding');
+        }));
+        clientBtn.addEventListener('click', (e) => {
+            if (holdExited) { holdExited = false; return; }
+            if (!state.client) { setClient(true); return; }
+            if (e.detail === 0) setClient(false);   // activation clavier (Entrée / Espace)
+        });
+        clientBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+                if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+                if ($('settingsDialog').open) return;
+                e.preventDefault();
+                setClient(!state.client);
+            }
+        });
+
+        // =====================================================
+        // Réglages : seuils & thème
+        // =====================================================
+        const dlg = $('settingsDialog');
+        function openSettings() {
+            $('floorInput').value = fmtFree.format(state.settings.floor);
+            $('goalInput').value = fmtFree.format(state.settings.goal);
+            $('err-settings').textContent = '';
+            dlg.showModal();
+        }
+        $('settingsBtn').addEventListener('click', openSettings);
+        $('editThresholdsBtn').addEventListener('click', openSettings);
+        $('settingsCancel').addEventListener('click', () => dlg.close());
+        $('settingsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const floor = parseNum($('floorInput').value);
+            const goal = parseNum($('goalInput').value);
+            if (floor === null || goal === null || Number.isNaN(floor) || Number.isNaN(goal)) {
+                $('err-settings').textContent = 'Renseignez deux pourcentages valides.'; return;
+            }
+            if (!(floor >= 0 && goal > floor && goal < 100)) {
+                $('err-settings').textContent = "L'objectif doit être supérieur au plancher et inférieur à 100 %."; return;
+            }
+            state.settings = { floor, goal };
+            store.set(KEYS.settings, state.settings);
+            dlg.close();
+            render();
+            toast('Seuils enregistrés');
+        });
+
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            if (theme === 'light' || theme === 'dark') root.dataset.theme = theme; else delete root.dataset.theme;
+            document.querySelectorAll('[data-theme-opt]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeOpt === (theme || 'auto'))));
+        }
+        applyTheme(store.get(KEYS.theme, 'auto'));
+        document.querySelectorAll('[data-theme-opt]').forEach((b) => b.addEventListener('click', () => {
+            store.set(KEYS.theme, b.dataset.themeOpt);
+            applyTheme(b.dataset.themeOpt);
+        }));
+
+        // =====================================================
+        // Comparateur d'offres A / B / C
+        // =====================================================
+        function renderScenarios() {
+            const list = state.scenarios;
+            $('scCount').textContent = `${list.length}/3`;
+            $('scAddBtn').disabled = list.length >= 3 || !(state.last && state.last.net > 0);
+            $('scEmpty').hidden = list.length > 0;
+            const wrap = $('scWrap');
+            wrap.hidden = list.length === 0;
+            if (!list.length) { wrap.innerHTML = ''; return; }
+
+            const cols = list.map((s) => ({ s, c: computeFrom(valuesFromInputs(s.inputs), s.inputs) }));
+            const anyQty = cols.some((x) => x.c.qty > 1);
+            const row = (label, fn, cls = '', internal = false) =>
+                `<tr class="${cls}"${internal ? ' data-internal' : ''}><td>${label}</td>${cols.map((x) => `<td>${fn(x.c)}</td>`).join('')}</tr>`;
+
+            let html = `<table class="sc-table" style="min-width:${120 + cols.length * 100}px"><thead><tr><th scope="col"><span class="sr-only">Indicateur</span></th>`;
+            html += cols.map(({ s }) => `<th scope="col"><span class="sc-title"><span class="sc-letter">${s.letter}</span>Offre ${s.letter}</span>` +
+                (s.inputs.label ? `<span class="sc-label" title="${esc(s.inputs.label)}">${esc(s.inputs.label)}</span>` : '') + '</th>').join('');
+            html += '</tr></thead><tbody>';
+            html += row('Remise', (c) => c.discountAmount > 0 ? `−${pctFree(round2(c.discount))}` : '—');
+            html += row('Prix unitaire net HT', (c) => eur(c.net));
+            if (anyQty) html += row('Quantité', (c) => String(c.qty));
+            html += row('Total HT', (c) => eur(c.totalHT));
+            html += row('Total TTC', (c) => eur(c.ttc), 'total');
+            html += row('Marge brute', (c) => c.ready ? eur(c.marginTotal) : '—', '', true);
+            html += row('Taux de marque', (c) => c.ready ? pct(c.markup) : '—', '', true);
+            html += row('Statut', (c) => `<span class="${chipClass(c.status.tone)}">${c.status.label}</span>`, '', true);
+            html += '</tbody><tfoot><tr><td></td>';
+            html += cols.map(({ s }) => `<td><span class="sc-actions">` +
+                `<button type="button" class="link-btn" data-sc-load="${s.letter}">Charger</button>` +
+                `<button type="button" class="icon-btn" data-sc-del="${s.letter}" aria-label="Retirer l'offre ${s.letter}" title="Retirer">` +
+                `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>` +
+                `</button></span></td>`).join('');
+            html += '</tr></tfoot></table>';
+            wrap.innerHTML = html;
+        }
+
+        $('scAddBtn').addEventListener('click', () => {
+            if (state.scenarios.length >= 3) return;
+            const letter = LETTERS.find((l) => !state.scenarios.some((s) => s.letter === l));
+            state.scenarios.push({ letter, inputs: getInputs() });
+            state.scenarios.sort((a, b) => a.letter.localeCompare(b.letter));
+            store.set(KEYS.scenarios, state.scenarios);
+            renderScenarios();
+            toast(`Offre ${letter} enregistrée`);
+        });
+        $('scWrap').addEventListener('click', (e) => {
+            const load = e.target.closest('[data-sc-load]');
+            const del = e.target.closest('[data-sc-del]');
+            if (load) {
+                const s = state.scenarios.find((x) => x.letter === load.dataset.scLoad);
+                if (s) { applyInputs(s.inputs); toast(`Offre ${s.letter} chargée`); }
+            } else if (del) {
+                const idx = state.scenarios.findIndex((x) => x.letter === del.dataset.scDel);
+                if (idx < 0) return;
+                const [removed] = state.scenarios.splice(idx, 1);
+                store.set(KEYS.scenarios, state.scenarios);
+                renderScenarios();
+                toast(`Offre ${removed.letter} retirée`, {
+                    action: 'Annuler',
+                    onAction: () => {
+                        if (state.scenarios.some((x) => x.letter === removed.letter) || state.scenarios.length >= 3) return;
+                        state.scenarios.push(removed);
+                        state.scenarios.sort((a, b) => a.letter.localeCompare(b.letter));
+                        store.set(KEYS.scenarios, state.scenarios);
+                        renderScenarios();
+                    },
+                });
+            }
+        });
+
+        // =====================================================
+        // Export : copie, partage, impression
+        // =====================================================
+        function buildSummary(clientOnly) {
+            const c = state.last;
+            const SEP = '------------------------------';
+            const label = labelInput.value.trim();
+            const L = ['PROPOSITION COMMERCIALE', `Date : ${fmtDateSh.format(new Date())}`];
+            if (label) L.push(`Objet : ${label}`);
+            L.push(SEP);
+            if (c.qty > 1) L.push(`Quantité : ${c.qty}`);
+            if (c.discountAmount > 0) {
+                L.push(`Prix unitaire catalogue HT : ${eur(c.cat)}`);
+                L.push(`Remise (${pctFree(round2(c.discount))}) : −${eur(c.discountAmount)}${unitSuffix(c)}`);
+            }
+            L.push(`Prix unitaire net HT : ${eur(c.net)}`);
+            if (c.qty > 1) L.push(`Total HT : ${eur(c.totalHT)}`);
+            L.push(`TVA (${pctFree(c.vat)}) : ${eur(c.vatAmount)}`);
+            L.push(`Total TTC : ${eur(c.ttc)}`);
+
+            if (!clientOnly) {
+                L.push('', 'INDICATEURS INTERNES', SEP);
+                L.push(`Prix d'achat HT unitaire : ${c.hasPA ? eur(c.pa) : 'non renseigné'}`);
+                if (c.ready) {
+                    L.push(`Marge brute : ${eur(c.marginTotal)}` + (c.qty > 1 ? ` (${eur(c.margin)} / unité)` : ''));
+                    L.push(`Taux de marque : ${pct(c.markup)}`);
+                    L.push(`Taux de marge : ${c.marginRate !== null ? pct(c.marginRate) : 'N/A'}`);
+                    L.push(`Coeff. HT/HT : ${c.coefHT !== null ? coef(c.coefHT) : 'N/A'}`);
+                    L.push(`Coeff. TTC/achat : ${c.coefTTC !== null ? coef(c.coefTTC) : 'N/A'}`);
+                    L.push(`Statut : ${c.status.label} (plancher ${pctFree(c.floor)}, objectif ${pctFree(c.goal)})`);
+                    if (c.maxd && c.maxd.discount >= 0) L.push(`Remise max. accordable : ${pctFree(c.maxd.discount)}`);
+                }
+            }
+            return L.join('\n').replace(/ /g, ' ');
+        }
+
+        function legacyCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+            document.body.removeChild(ta);
+            return ok;
+        }
+
+        let copyTimer;
+        $('copyBtn').addEventListener('click', async () => {
+            const text = buildSummary(state.client);
+            let ok = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; }
+            } catch (e) { ok = false; }
+            if (!ok) ok = legacyCopy(text);
+            if (!ok) { toast('Copie impossible sur ce navigateur.'); return; }
+
+            const btn = $('copyBtn');
+            $('copyBtnText').textContent = 'Copié !';
+            $('copyIcon').hidden = true;
+            $('checkIcon').hidden = false;
+            btn.classList.add('is-success');
+            toast(state.client ? 'Proposition copiée' : 'Récapitulatif complet copié');
+            clearTimeout(copyTimer);
+            copyTimer = setTimeout(() => {
+                $('copyBtnText').textContent = 'Copier';
+                $('copyIcon').hidden = false;
+                $('checkIcon').hidden = true;
+                btn.classList.remove('is-success');
+            }, 2000);
+        });
+
+        // Partage natif (mobile, Safari…) : toujours la version client
+        if (navigator.share) {
+            $('shareBtn').hidden = false;
+            $('shareBtn').addEventListener('click', async () => {
+                try {
+                    await navigator.share({ title: 'Proposition commerciale', text: buildSummary(true) });
+                } catch (e) {
+                    if (e && e.name !== 'AbortError') toast('Partage impossible sur cet appareil.');
+                }
+            });
+        }
+
+        // Devis A4 : uniquement les données client
+        function buildPrintQuote() {
+            const c = state.last;
+            const label = labelInput.value.trim();
+            const tr = (k, v, cls = '') => `<tr class="${cls}"><td>${k}</td><td>${v}</td></tr>`;
+            let rows = '';
+            if (c.discountAmount > 0) {
+                rows += tr('Prix unitaire catalogue HT', eur(c.cat));
+                rows += tr(`Remise (${pctFree(round2(c.discount))})`, `−${eur(c.discountAmount)}`);
+            }
+            rows += tr('Prix unitaire net HT', eur(c.net));
+            rows += tr('Quantité', String(c.qty));
+            rows += tr('Total HT', eur(c.totalHT));
+            rows += tr(`TVA (${pctFree(c.vat)})`, eur(c.vatAmount));
+            rows += tr('Total TTC', eur(c.ttc), 'pq-total');
+
+            let options = '';
+            if (state.scenarios.length >= 2) {
+                const cols = state.scenarios.map((s) => ({ s, c: computeFrom(valuesFromInputs(s.inputs), s.inputs) }));
+                const r = (k, fn, cls = '') => `<tr class="${cls}"><td>${k}</td>${cols.map((x) => `<td>${fn(x.c)}</td>`).join('')}</tr>`;
+                options = `<h2 class="pq-h2">Options proposées</h2><table class="pq-table"><thead><tr><th></th>` +
+                    cols.map(({ s }) => `<th>Offre ${s.letter}${s.inputs.label ? `<br><span style="text-transform:none;letter-spacing:0;font-weight:500">${esc(s.inputs.label)}</span>` : ''}</th>`).join('') +
+                    '</tr></thead><tbody>' +
+                    r('Remise', (x) => x.discountAmount > 0 ? `−${pctFree(round2(x.discount))}` : '—') +
+                    r('Prix unitaire net HT', (x) => eur(x.net)) +
+                    r('Quantité', (x) => String(x.qty)) +
+                    r('Total HT', (x) => eur(x.totalHT)) +
+                    r('Total TTC', (x) => eur(x.ttc), 'pq-total') +
+                    '</tbody></table>';
+            }
+
+            $('printQuote').innerHTML =
+                `<div class="pq-head"><div><div class="pq-title">Proposition commerciale</div>` +
+                (label ? `<div class="pq-sub">${esc(label)}</div>` : '') +
+                `</div><div class="pq-meta">Établie le ${fmtDate.format(new Date())}</div></div>` +
+                `<table class="pq-table"><thead><tr><th>Détail</th><th>Montant</th></tr></thead><tbody>${rows}</tbody></table>` +
+                options +
+                `<p class="pq-foot">Montants exprimés en euros.</p>`;
+        }
+        window.addEventListener('beforeprint', buildPrintQuote);
+        $('printBtn').addEventListener('click', () => { buildPrintQuote(); window.print(); });
+
+        // =====================================================
+        // Réinitialisation annulable
+        // =====================================================
+        $('resetBtn').addEventListener('click', () => {
+            const snapshot = getInputs();
+            applyInputs({ discount: '0', vat: '20', qty: '1' });
+            toast('Calculatrice réinitialisée', {
+                action: 'Annuler',
+                duration: 6000,
+                onAction: () => { applyInputs(snapshot); toast('Saisie restaurée'); },
+            });
+        });
+
+        // =====================================================
+        // Toast (avec action facultative)
+        // =====================================================
+        let toastTimer;
+        let toastFn = null;
+        function hideToast() { $('toast').classList.remove('show'); toastFn = null; }
+        function toast(msg, opts = {}) {
+            $('toastMsg').textContent = msg;
+            const btn = $('toastAction');
+            toastFn = opts.onAction || null;
+            btn.hidden = !opts.action;
+            btn.textContent = opts.action || '';
+            $('toast').classList.toggle('has-action', !!opts.action);
+            $('toast').classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(hideToast, opts.duration || 2400);
+        }
+        $('toastAction').addEventListener('click', () => {
+            const fn = toastFn;
+            clearTimeout(toastTimer);
+            hideToast();
+            if (fn) fn();
+        });
+
+        // =====================================================
+        // Barre mobile : masquée quand la carte prix est visible
+        // =====================================================
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(([entry]) => {
+                $('mbar').classList.toggle('is-hidden', entry.isIntersecting);
+            }, { threshold: 0.4 }).observe($('heroCard'));
+        }
+
+        // =====================================================
+        // Démarrage : reprise de la dernière saisie
+        // =====================================================
+        const draft = store.get(KEYS.draft, null);
+        if (draft && typeof draft === 'object') applyInputs(draft); else { syncToggles(); render(); }
+    })();
+    </script>
+    <script>
+        // Mode hors connexion : enregistre le service worker (HTTPS ou localhost uniquement)
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => { /* l'application fonctionne aussi sans */ });
+            });
+        }
+    </script>
+</body>
+</html>
